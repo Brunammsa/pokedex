@@ -74,7 +74,7 @@ function mostrarPokemon(): void
         }
 
     } catch (InvalidArgumentException $exception) {
-        echo "Pokemon não encontrado" . PHP_EOL;
+        echo "Ou o pokemon não existe, ou ele foi adicionado sem estar relacionado a um tipo" . PHP_EOL;
     }
     
 }
