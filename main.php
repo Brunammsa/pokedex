@@ -62,21 +62,21 @@ function mostrarPokemon(): void
     $pokemonId = $inputzVei->ask();
 
     try {
-        $pokemon = $repository->buscaPokemon($pokemonId);
-        $type = $repository->buscaPorTypeId($pokemonId);
+        if (!($pokemon = $repository->buscaPokemon($pokemonId)) || is_null($pokemon = $repository->buscaPokemon($pokemonId))) {
+            throw new InvalidArgumentException("Não existe Pokemon com este ID" . PHP_EOL);  
+        }
+        if (!($type = $repository->buscaPorTypeId($pokemonId)) || is_null($type = $repository->buscaPorTypeId($pokemonId))) {
+            throw new InvalidArgumentException("O pokemon $pokemon existe, mas ainda não tem tipo relacionado" . PHP_EOL);
+        }
 
         if (count($type) == 2) {
             echo "Pokemon: $pokemon - Tipo: $type[0] / $type[1]" . PHP_EOL;
         } elseif (count($type) == 1) {
             echo "Pokemon: $pokemon - Tipo: $type[0]" . PHP_EOL;
-        } elseif (count($type) == 0 || is_null($type)) {
-            throw new InvalidArgumentException;
         }
-
     } catch (InvalidArgumentException $exception) {
-        echo "Ou o pokemon não existe, ou ele foi adicionado sem estar relacionado a um tipo" . PHP_EOL;
+        echo $exception->getMessage();
     }
-    
 }
 
 function adicionarPokemon(): void

@@ -105,7 +105,7 @@ class PokedexRepositorySql
         $sucess = $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        if (is_array($getList)) {
+        if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
             $pokemon = $getList[0]['name'];
         } else {
             $pokemon = null;
