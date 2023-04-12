@@ -40,50 +40,41 @@ class PokedexRepositorySql
 
     public function listaDePokemonESeusTipos(): array
     {
-        $query = "SELECT pokemon.name, type_pokemon.name FROM pokemon 
-            INNER JOIN pokemon_type_pokemon ON pokemon.id = pokemon_type_pokemon.pokemon_id
-            INNER JOIN type_pokemon ON type_pokemon.id = pokemon_type_pokemon.type_id;";
+        $query = "SELECT * from pokemon;";
             
-        $statement = $this->connection->prepare($query);
+        $statement = $this->connection->query($query);
         $lista = $statement->fetchAll();
 
         $listaDePokemons = [];
 
         foreach ($lista as $pokemon) {
-            $listaDePokemons[] = $pokemon;
+            $listaDePokemons[] = "ID: " . $pokemon[0] . " - Pokemon: " . $pokemon[1];
         }
-
         return $listaDePokemons;
     }
 
     public function buscaPorTypeId(int $id): ?array
     {
-        $queryTypesId =  "SELECT type_id FROM pokemon_type_pokemon where pokemon_id=:id;";
-
+        $queryTypesId = "SELECT type_id FROM pokemon_type_pokemon where pokemon_id=:id;";
         $statement = $this->connection->prepare($queryTypesId);
         $statement->bindParam(':id', $id);
+        $statement->execute();
+        
+        $typeIdsList = [];
+        
+        while ($type = $statement->fetch(PDO::FETCH_ASSOC)) {
+            $idType = $type["type_id"];
 
-        $sucess = $statement->execute();
-        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $queryDoType = "SELECT name FROM type_pokemon where id=:idType;";
+            $statement2 = $this->connection->prepare($queryDoType);
+            $statement2->bindParam(':idType', $idType);
+            $statement2->execute();
 
-        $typeList = [];
-
-        foreach ($getList as $type) {
-            $typeList[] = $type["type_id"];
+            $result = $statement2->fetch(PDO::FETCH_ASSOC);
+            $typeName = $result['name'];
+            $typeIdsList[] = $typeName;
         }
-        //ta pegando o os id, agora preciso fazer um for p por no prox query
-
-
-        $queryType = "SELECT name FROM type_pokemon where id=3;";
-
-
-        if (is_array($getList)) {
-            $type = $getList[0]['name'];
-        } else {
-            $type = null;
-        }
-
-        return $type;
+        return $typeIdsList;
     }
 
     public function buscaPorSpecieId(int $specie): ?int

@@ -64,8 +64,12 @@ function mostrarPokemon(): void
     try {
         $pokemon = $repository->buscaPokemon($pokemonId);
         $type = $repository->buscaPorTypeId($pokemonId);
-        
-        echo "Pokemon: $pokemon - Tipo: $type" . PHP_EOL;
+
+        if (count($type) >= 2) {
+            echo "Pokemon: $pokemon - Tipo: $type[0] / $type[1]" . PHP_EOL;
+        } else {
+            echo "Pokemon: $pokemon - Tipo: $type[0]" . PHP_EOL;
+        }
 
     } catch (InvalidArgumentException $exception) {
         echo "Pokemon não encontrado" . PHP_EOL;
