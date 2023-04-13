@@ -87,16 +87,30 @@ function adicionarPokemon(): void
     $inputzVei = new InputText("Qual o nome do pokemon? ");
     $namePokemon = $inputzVei->ask();
 
-    try {
-        $pokemon = new Pokemon($namePokemon);
-        $repository->armazenaPokemon($pokemon);
+    $validation = null;
 
-        echo "o Pokemon $namePokemon foi inserido com sucesso" . PHP_EOL;
+    while ($validation == null || !$validation == 'sair') {
+        $inputzVei = new InputText("Qual o type do pokemon? ");
+        $typePokemon = $inputzVei->ask();
 
-    } catch (\Throwable $th) {
-        echo "Algo deu errado, tente novamente" . PHP_EOL;
+        $type = new TypePokemon($typePokemon);
+        $idType = $repository->armazenaType($type);
+
+        try {
+            $pokemon = new Pokemon($namePokemon);
+            $idPokemon = $repository->armazenaPokemon($pokemon);
+            $repository->armazenaPokemonEType($idPokemon, $idType);
+
+            echo "o Pokemon $namePokemon foi inserido com sucesso" . PHP_EOL;
+        } catch (\Throwable $th) {
+            echo "Algo deu errado, tente novamente" . PHP_EOL;
+        }
+        
+        $validation = readline("Se deseja por mais um type no pokemon $namePokemon, aperte ENTER ou digite SAIR para finalizar. ");
+        if ($validation == 'sair') {
+            exit;
+        }
     }
-
 }
 
 

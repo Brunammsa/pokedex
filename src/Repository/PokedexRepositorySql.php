@@ -14,20 +14,41 @@ class PokedexRepositorySql
     {
     }
 
-    public function armazenaPokemon(Pokemon $pokemon): void
+
+    public function armazenaPokemonEType(Pokemon $pokemon, TypePokemon $typePok): void
+    {
+        $query = "INSERT INTO pokemon_type_pokemon (pokemon_id, type_id) VALUES (:name, :type);";
+
+        $statement = $this->connection->prepare($query);
+        $sucess = $statement->execute([
+            ':name'=>$pokemon->getNamePokemon(),
+            ':type'=>$typePok->getType()
+        ]);
+    }
+
+
+    public function armazenaPokemon(Pokemon $pokemon): int
     {
         $query = "INSERT INTO pokemon (name) VALUE (:name)";
 
         $statement = $this->connection->prepare($query);
         $sucess = $statement->execute([':name'=>$pokemon->getNamePokemon()]);
+
+        $lastId = $this->connection->lastInsertId();
+
+        return $lastId;
     }
 
-    public function armazenaType(TypePokemon $type): void
+    public function armazenaType(TypePokemon $type): int
     {
         $query = "INSERT INTO type_pokemon (name_type) VALUE (:type);";
 
         $statement = $this->connection->prepare($query);
         $sucess = $statement->execute([":type"=>$type->getType()]);
+
+        $lastId = $this->connection->lastInsertId();
+
+        return $lastId;
     }
 
     public function armazenaSpecie(Species $specie): void
@@ -53,28 +74,21 @@ class PokedexRepositorySql
         return $listaDePokemons;
     }
 
-    public function buscaPorTypeId(int $id): ?array
+    public function buscaPorTypeId(string $name): ?int
     {
-        $queryTypesId = "SELECT type_id FROM pokemon_type_pokemon where pokemon_id=:id;";
+        $queryTypesId = "SELECT id FROM pokemon where name=:name;";
         $statement = $this->connection->prepare($queryTypesId);
-        $statement->bindParam(':id', $id);
+        $statement->bindParam(':name', $name);
+
         $statement->execute();
-        
-        $typeIdsList = [];
-        
-        while ($type = $statement->fetch(PDO::FETCH_ASSOC)) {
-            $idType = $type["type_id"];
+        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-            $queryDoType = "SELECT name FROM type_pokemon where id=:idType;";
-            $statement2 = $this->connection->prepare($queryDoType);
-            $statement2->bindParam(':idType', $idType);
-            $statement2->execute();
-
-            $result = $statement2->fetch(PDO::FETCH_ASSOC);
-            $typeName = $result['name'];
-            $typeIdsList[] = $typeName;
+        if (is_array($getList)) {
+            $idType = $getList[0]['id'];
+        } else {
+            $idType = null;
         }
-        return $typeIdsList;
+
     }
 
     public function buscaPorSpecieId(int $specie): ?int
