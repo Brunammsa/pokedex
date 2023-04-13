@@ -93,22 +93,33 @@ function adicionarPokemon(): void
         $inputzVei = new InputText("Qual o type do pokemon? ");
         $typePokemon = $inputzVei->ask();
 
-        $type = new TypePokemon($typePokemon);
-        $idType = $repository->armazenaType($type);
-
         try {
-            $pokemon = new Pokemon($namePokemon);
-            $idPokemon = $repository->armazenaPokemon($pokemon);
-            $repository->armazenaPokemonEType($idPokemon, $idType);
+            $namePokemonWId = $repository->buscaPokemon($namePokemon);
+            if (is_null($namePokemonWId)) {
+                $name = new Pokemon($namePokemon);
+                $namePokemonWId = $repository->armazenaPokemon($name);
+            }
 
-            echo "o Pokemon $namePokemon foi inserido com sucesso" . PHP_EOL;
+            $typePokemonWId = $repository->buscaType($typePokemon);
+            if (is_null($typePokemonWId)) {
+                $type = new TypePokemon($typePokemon);
+                $typePokemonWId = $repository->armazenaType($type);
+            }
+
+            $confere = $repository->conferePokemonType($namePokemonWId, $typePokemonWId);
+            if ($confere) {
+                echo "O pokemon $namePokemon já está relacionado ao tipo $typePokemon" . PHP_EOL;
+            } else {
+                $repository->armazenaPokemonEType($namePokemonWId, $typePokemonWId);
+                echo "o Pokemon $namePokemon foi inserido com sucesso" . PHP_EOL;
+            }
+
+            $validation = readline("Se deseja por mais um type no pokemon $namePokemon, aperte ENTER ou digite SAIR para finalizar. ");
+            if ($validation == 'sair') {
+                return;
+            }
         } catch (\Throwable $th) {
             echo "Algo deu errado, tente novamente" . PHP_EOL;
-        }
-        
-        $validation = readline("Se deseja por mais um type no pokemon $namePokemon, aperte ENTER ou digite SAIR para finalizar. ");
-        if ($validation == 'sair') {
-            exit;
         }
     }
 }

@@ -15,14 +15,14 @@ class PokedexRepositorySql
     }
 
 
-    public function armazenaPokemonEType(Pokemon $pokemon, TypePokemon $typePok): void
+    public function armazenaPokemonEType($pokemon, $typePok): void
     {
         $query = "INSERT INTO pokemon_type_pokemon (pokemon_id, type_id) VALUES (:name, :type);";
 
         $statement = $this->connection->prepare($query);
         $sucess = $statement->execute([
-            ':name'=>$pokemon->getNamePokemon(),
-            ':type'=>$typePok->getType()
+            ':name'=>$pokemon,
+            ':type'=>$typePok
         ]);
     }
 
@@ -35,6 +35,7 @@ class PokedexRepositorySql
         $sucess = $statement->execute([':name'=>$pokemon->getNamePokemon()]);
 
         $lastId = $this->connection->lastInsertId();
+        var_dump($lastId);
 
         return $lastId;
     }
@@ -51,13 +52,23 @@ class PokedexRepositorySql
         return $lastId;
     }
 
-    public function armazenaSpecie(Species $specie): void
-    {
-        $query = "INSERT INTO species (name) VALUE (:specie);";
 
+    public function conferePokemonType(int $pokemon, int $type): bool
+    {
+        $query = "SELECT * from pokemon_type_pokemon WHERE pokemon_id=:idPokemon and type_id=:idType;";
         $statement = $this->connection->prepare($query);
-        $sucess = $statement->execute([":specie"=>$specie->getSpecie()]);
+        $statement->bindParam(':idPokemon', $pokemon);
+        $statement->bindParam(':idType', $type);
+
+        $sucess = $statement->execute();
+
+        if (!$sucess) {
+            return $sucess = false;
+        }
+
+        return true;
     }
+
 
     public function listaDePokemonESeusTipos(): array
     {
@@ -74,57 +85,42 @@ class PokedexRepositorySql
         return $listaDePokemons;
     }
 
-    public function buscaPorTypeId(string $name): ?int
+    public function buscaType(string $name): ?int
     {
-        $queryTypesId = "SELECT id FROM pokemon where name=:name;";
+        $queryTypesId = "SELECT id FROM type_pokemon where name=:name;";
         $statement = $this->connection->prepare($queryTypesId);
         $statement->bindParam(':name', $name);
-
-        $statement->execute();
-        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        if (is_array($getList)) {
-            $idType = $getList[0]['id'];
-        } else {
-            $idType = null;
-        }
-
-    }
-
-    public function buscaPorSpecieId(int $specie): ?int
-    {
-        $query = "SELECT id FROM species WHERE name=:specie;";
-
-        $statement = $this->connection->prepare($query);
-        $statement->bindParam(':specie', $specie);
-
-        $sucess = $statement->execute();
-        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
-
-        if (is_array($getList)) {
-            $idSpecie = $getList[0]['id'];
-        } else {
-            $idSpecie = null;
-        }
-
-        return $idSpecie;
-    }
-
-    public function buscaPokemon(int $id): ?string
-    {
-        $query = "SELECT name from pokemon WHERE id=:id;";
-        $statement = $this->connection->prepare($query);
-        $statement->bindParam(':id', $id);
 
         $sucess = $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
-            $pokemon = $getList[0]['name'];
+            $pokemonId = $getList[0]['id'];
         } else {
-            $pokemon = null;
+            $pokemonId = null;
+        }
+        var_dump($pokemonId);
+        die;
+        return $pokemonId;
+    }
+
+
+    public function buscaPokemon(string $name): ?int
+    {
+        $query = "SELECT id from pokemon WHERE name=:name;";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':name', $name);
+
+        $sucess = $statement->execute();
+        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
+            $pokemonId = $getList[0]['id'];
+        } else {
+            $pokemonId = null;
         }
 
-        return $pokemon;
+        return $pokemonId;
+
     }
 }
