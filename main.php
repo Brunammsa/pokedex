@@ -107,11 +107,13 @@ function adicionarPokemon(): void
             }
 
             $confere = $repository->conferePokemonType($namePokemonWId, $typePokemonWId);
-            if ($confere) {
-                echo "O pokemon $namePokemon já está relacionado ao tipo $typePokemon" . PHP_EOL;
+
+            if (!$confere) {
+                $armazenaRelacionado = $repository->armazenaPokemonEType($namePokemonWId, $typePokemonWId);
+                echo "o Pokemon $namePokemon com o tipo $typePokemonfoi inserido com sucesso" . PHP_EOL;
             } else {
-                $repository->armazenaPokemonEType($namePokemonWId, $typePokemonWId);
-                echo "o Pokemon $namePokemon foi inserido com sucesso" . PHP_EOL;
+                echo "O pokemon $namePokemon já está relacionado ao tipo $typePokemon" . PHP_EOL;
+
             }
 
             $validation = readline("Se deseja por mais um type no pokemon $namePokemon, aperte ENTER ou digite SAIR para finalizar. ");
@@ -120,6 +122,7 @@ function adicionarPokemon(): void
             }
         } catch (\Throwable $th) {
             echo "Algo deu errado, tente novamente" . PHP_EOL;
+            return;
         }
     }
 }
