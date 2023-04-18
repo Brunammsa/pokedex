@@ -3,7 +3,6 @@
 namespace Bruna\Pokedex\Repository;
 
 use Bruna\Pokedex\Domain\Pokemon;
-use Bruna\Pokedex\Domain\Species;
 use Bruna\Pokedex\Domain\TypePokemon;
 
 use PDO;
@@ -20,7 +19,7 @@ class PokedexRepositorySql
         $query = "INSERT INTO pokemon_type_pokemon (pokemon_id, type_id) VALUES (:name, :type);";
 
         $statement = $this->connection->prepare($query);
-        $sucess = $statement->execute([
+        $statement->execute([
             ':name'=>$pokemon,
             ':type'=>$typePok
         ]);
@@ -32,7 +31,7 @@ class PokedexRepositorySql
         $query = "INSERT INTO pokemon (name) VALUE (:name)";
 
         $statement = $this->connection->prepare($query);
-        $sucess = $statement->execute([':name'=>$pokemon->getNamePokemon()]);
+        $statement->execute([':name'=>$pokemon->getNamePokemon()]);
 
         $lastId = $this->connection->lastInsertId();
 
@@ -45,7 +44,7 @@ class PokedexRepositorySql
         $query = "INSERT INTO type_pokemon (name) VALUE (:type);";
 
         $statement = $this->connection->prepare($query);
-        $sucess = $statement->execute([":type"=>$type->getType()]);
+        $statement->execute([":type"=>$type->getType()]);
         $lastId = $this->connection->lastInsertId();
 
         return $lastId;
@@ -59,7 +58,7 @@ class PokedexRepositorySql
         $statement->bindParam(':idPokemon', $pokemon);
         $statement->bindParam(':idType', $type);
 
-        $sucess = $statement->execute();
+        $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
@@ -70,7 +69,56 @@ class PokedexRepositorySql
     }
 
 
-    public function listaDePokemonESeusTipos(): array
+    public function pokemonRelacionado(int $id): array
+    {
+        $query = "SELECT * from pokemon_type_pokemon WHERE pokemon_id=:idPokemon;";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':idPokemon', $id);
+
+        $statement->execute();
+        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        $listaRelacionadosTiposIds = [];
+
+        for ($i=0; $i < count($getList) ; $i++) { 
+            $listaRelacionadosTiposIds[] = $getList[$i]['type_id'];
+        }
+        var_dump($listaRelacionadosTiposIds);
+        $nomeDosTipos = [];
+
+        $aux = 0;
+        foreach ($listaRelacionadosTiposIds as $tipo) {
+            var_dump($tipo);
+
+            $query2 = "SELECT name FROM type_pokemon WHERE id=:id;";
+
+            $statement2 = $this->connection->prepare($query2);
+            $statement2->bindParam(':id', $tipo);
+
+            $statement2->execute();
+            $getList2 = $statement2->fetchAll(PDO::FETCH_ASSOC);
+
+            $nomeDosTipos[] = $getList2[$aux]['name'];
+            $aux++;
+        }
+        
+        return $nomeDosTipos;
+    }
+
+
+    public function getNomePokemon(int $id): string
+    {   
+        $query = "SELECT name FROM pokemon WHERE id=:id;";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':id', $id);
+        $statement->execute();
+        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        return $getList[0]['name'];
+    }
+
+
+    public function listaDePokemon(): array
     {
         $query = "SELECT * from pokemon;";
             
@@ -91,13 +139,13 @@ class PokedexRepositorySql
         $statement = $this->connection->prepare($queryTypesId);
         $statement->bindParam(':name', $name);
 
-        $sucess = $statement->execute();
+        $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
-            return $typeId = $getList[0]['id'];
+            return $getList[0]['id'];
         } elseif(is_array($getList) && count($getList) == 0) {
-            return $typeId = null;
+            return null;
         }
     }
 
@@ -108,13 +156,13 @@ class PokedexRepositorySql
         $statement = $this->connection->prepare($query);
         $statement->bindParam(':name', $name);
 
-        $sucess = $statement->execute();
+        $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
         if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
-            return $pokemonId = $getList[0]['id'];
+            return $getList[0]['id'];
         } else {
-            return $pokemonId = null;
+            return null;
         }
     }
 }

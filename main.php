@@ -5,7 +5,6 @@ require_once "vendor/autoload.php";
 use Bruna\Pokedex\Persistence\ConnectionCreator;
 use Bruna\Pokedex\Repository\PokedexRepositorySql;
 use Bruna\Pokedex\Domain\Pokemon;
-use Bruna\Pokedex\Domain\Species;
 use Bruna\Pokedex\Domain\TypePokemon;
 use Brunammsa\Inputzvei\InputNumber;
 use Brunammsa\Inputzvei\InputText;
@@ -45,7 +44,7 @@ function listarPokemons(): void
     $connectionPdo = ConnectionCreator::createConnection();
     $repository = new PokedexRepositorySql($connectionPdo);
 
-    $listaDePokemons = $repository->listaDePokemonESeusTipos();
+    $listaDePokemons = $repository->listaDePokemon();
 
     foreach ($listaDePokemons as $pokemon) {
         echo $pokemon . PHP_EOL;
@@ -58,22 +57,21 @@ function mostrarPokemon(): void
     $connectionPdo = ConnectionCreator::createConnection();
     $repository = new PokedexRepositorySql($connectionPdo);
 
-    $inputzVei = new InputNumber("Qual o ID do pokemon? ");
+    $inputzVei = new InputNumber("Qual o ID do nome do pokemon? ");
     $pokemonId = $inputzVei->ask();
 
     try {
-        if (!($pokemon = $repository->buscaPokemon($pokemonId)) || is_null($pokemon = $repository->buscaPokemon($pokemonId))) {
-            throw new InvalidArgumentException("Não existe Pokemon com este ID" . PHP_EOL);  
-        }
-        if (!($type = $repository->buscaPorTypeId($pokemonId)) || is_null($type = $repository->buscaPorTypeId($pokemonId))) {
-            throw new InvalidArgumentException("O pokemon $pokemon existe, mas ainda não tem tipo relacionado" . PHP_EOL);
-        }
+        $pokemonRelacionado = $repository->pokemonRelacionado(intval($pokemonId));
 
-        if (count($type) == 2) {
-            echo "Pokemon: $pokemon - Tipo: $type[0] / $type[1]" . PHP_EOL;
-        } elseif (count($type) == 1) {
-            echo "Pokemon: $pokemon - Tipo: $type[0]" . PHP_EOL;
-        }
+        if (is_null($pokemonRelacionado)) {
+            throw new InvalidArgumentException("Não existe Pokemon com este ID" . PHP_EOL);
+        } 
+
+        $nomePokemon = $repository->getNomePokemon(intval($pokemonId));
+
+        echo "$nomePokemon possui os tipos: $pokemonRelacionado" . PHP_EOL;
+
+
     } catch (InvalidArgumentException $exception) {
         echo $exception->getMessage();
     }
@@ -109,8 +107,8 @@ function adicionarPokemon(): void
             $confere = $repository->conferePokemonType($namePokemonWId, $typePokemonWId);
 
             if (!$confere) {
-                $armazenaRelacionado = $repository->armazenaPokemonEType($namePokemonWId, $typePokemonWId);
-                echo "o Pokemon $namePokemon com o tipo $typePokemonfoi inserido com sucesso" . PHP_EOL;
+                $repository->armazenaPokemonEType($namePokemonWId, $typePokemonWId);
+                echo "o Pokemon $namePokemon com o tipo $typePokemon foi inserido com sucesso" . PHP_EOL;
             } else {
                 echo "O pokemon $namePokemon já está relacionado ao tipo $typePokemon" . PHP_EOL;
 
@@ -120,7 +118,7 @@ function adicionarPokemon(): void
             if ($validation == 'sair') {
                 return;
             }
-        } catch (\Throwable $th) {
+        } catch (\Throwable) {
             echo "Algo deu errado, tente novamente" . PHP_EOL;
             return;
         }
