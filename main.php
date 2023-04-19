@@ -61,13 +61,14 @@ function mostrarPokemon(): void
     $pokemonId = $inputzVei->ask();
 
     try {
-        $pokemonRelacionado = $repository->pokemonRelacionado(intval($pokemonId));
+        $encontraPokemon = $repository->conferePokemon($pokemonId);
 
-        if (is_null($pokemonRelacionado)) {
+        if (!($encontraPokemon) || $pokemonId == 0) {
             throw new InvalidArgumentException("Não existe Pokemon com este ID" . PHP_EOL);
         } 
 
-        $nomePokemon = $repository->getNomePokemon(intval($pokemonId));
+        $pokemonRelacionado = $repository->pokemonRelacionado($pokemonId);
+        $nomePokemon = $repository->getNomePokemon($pokemonId);
 
         echo "$nomePokemon possui os tipos: $pokemonRelacionado" . PHP_EOL;
 

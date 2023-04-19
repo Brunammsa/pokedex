@@ -51,6 +51,25 @@ class PokedexRepositorySql
     }
 
 
+    public function conferePokemon(int $id): bool
+    {
+        $query = "SELECT * from pokemon WHERE id=:id";
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':id', $id);
+
+        $statement->execute();
+        $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
+            $teste = true;
+        } else {
+            $teste = false;
+        }
+
+        return $teste;
+    }
+
+
     public function conferePokemonType(int $pokemon, int $type): bool
     {
         $query = "SELECT * from pokemon_type_pokemon WHERE pokemon_id=:idPokemon and type_id=:idType;";
@@ -69,7 +88,7 @@ class PokedexRepositorySql
     }
 
 
-    public function pokemonRelacionado(int $id): array
+    public function pokemonRelacionado(int $id): string
     {
         $query = "SELECT * from pokemon_type_pokemon WHERE pokemon_id=:idPokemon;";
         $statement = $this->connection->prepare($query);
@@ -83,26 +102,19 @@ class PokedexRepositorySql
         for ($i=0; $i < count($getList) ; $i++) { 
             $listaRelacionadosTiposIds[] = $getList[$i]['type_id'];
         }
-        var_dump($listaRelacionadosTiposIds);
-        $nomeDosTipos = [];
 
-        $aux = 0;
-        foreach ($listaRelacionadosTiposIds as $tipo) {
-            var_dump($tipo);
+        $tipoIds = implode(",", $listaRelacionadosTiposIds);
 
-            $query2 = "SELECT name FROM type_pokemon WHERE id=:id;";
+        $query2 = "SELECT name FROM type_pokemon WHERE id IN ($tipoIds);";
 
-            $statement2 = $this->connection->prepare($query2);
-            $statement2->bindParam(':id', $tipo);
+        $statement2 = $this->connection->prepare($query2);
+        $statement2->execute();
+        $getList2 = $statement2->fetchAll(PDO::FETCH_ASSOC);
 
-            $statement2->execute();
-            $getList2 = $statement2->fetchAll(PDO::FETCH_ASSOC);
+        $tipos = array_column($getList2, 'name');
 
-            $nomeDosTipos[] = $getList2[$aux]['name'];
-            $aux++;
-        }
-        
-        return $nomeDosTipos;
+        $nomeTipos = implode(', ', $tipos);
+        return $nomeTipos;
     }
 
 
