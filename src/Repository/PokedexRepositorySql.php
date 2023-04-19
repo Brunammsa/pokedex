@@ -80,28 +80,15 @@ class PokedexRepositorySql
 
     public function pokemonRelacionado(int $id): string
     {
-        $query = "SELECT * from pokemon_type_pokemon WHERE pokemon_id=:idPokemon;";
-        $statement = $this->connection->prepare($query);
-        $statement->bindParam(':idPokemon', $id);
+        $query = "select name from type_pokemon as tp 
+        JOIN pokemon_type_pokemon as ptp on ptp.type_id=tp.id where ptp.pokemon_id=:id;";
 
+        $statement = $this->connection->prepare($query);
+        $statement->bindParam(':id', $id);
         $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        $listaRelacionadosTiposIds = [];
-
-        for ($i=0; $i < count($getList) ; $i++) { 
-            $listaRelacionadosTiposIds[] = $getList[$i]['type_id'];
-        }
-
-        $tipoIds = implode(",", $listaRelacionadosTiposIds);
-
-        $query2 = "SELECT name FROM type_pokemon WHERE id IN ($tipoIds);";
-
-        $statement2 = $this->connection->prepare($query2);
-        $statement2->execute();
-        $getList2 = $statement2->fetchAll(PDO::FETCH_ASSOC);
-
-        $tipos = array_column($getList2, 'name');
+        $tipos = array_column($getList, 'name');
 
         $nomeTipos = implode(', ', $tipos);
         return $nomeTipos;
