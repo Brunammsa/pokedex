@@ -60,13 +60,7 @@ class PokedexRepositorySql
         $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
-            $teste = true;
-        } else {
-            $teste = false;
-        }
-
-        return $teste;
+        return is_array($getList) && count($getList) > 0 && $getList[0] != 0;
     }
 
 
@@ -80,11 +74,7 @@ class PokedexRepositorySql
         $statement->execute();
         $getList = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-        if (is_array($getList) && count($getList) > 0 && $getList[0] != 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return is_array($getList) && count($getList) > 0 && $getList[0] != 0;
     }
 
 
